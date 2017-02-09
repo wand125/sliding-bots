@@ -10,7 +10,8 @@ namespace SlidingBots
         Red = 0,
         Blue = 1,
         Green = 2,
-        Yellow = 3
+        Yellow = 3,
+        All = 4
     }
 
     public class Field
@@ -52,7 +53,7 @@ namespace SlidingBots
             horizontalWall[14] = new uint[] { 7, 13, MapSize };
             horizontalWall[15] = new uint[] { 5, 12, MapSize };
 
-            int prob = 15;
+            int prob = 13;
 
             switch (prob)
             {
@@ -74,6 +75,15 @@ namespace SlidingBots
                     );
                     setGoal(5, 8, Color.Yellow);
                     break;
+                case 3:
+                    botId = toBotId(
+                        6, 8,
+                        6, 1,
+                        2, 8,
+                        5, 8
+                    );
+                    setGoal(7, 5, Color.Red);
+                    break;
                 case 8:
                     botId = toBotId(
                         2, 5,
@@ -82,6 +92,15 @@ namespace SlidingBots
                         5, 4
                     );
                     setGoal(9, 11, Color.Yellow);
+                    break;
+                case 13:
+                    botId = toBotId(
+                        1, 14,
+                        0, 11,
+                        5, 4,
+                        11, 15
+                    );
+                    setGoal(14, 13, Color.Red);
                     break;
                 case 15:
                     botId = toBotId(
@@ -679,6 +698,7 @@ namespace SlidingBots
         {
             for (int depth = 0;; ++depth)
             {
+                cache = new Dictionary<uint, int>();
                 var tick = -Environment.TickCount;
                 var found = dls(bots, depth, 0);
                 tick += Environment.TickCount;
@@ -690,6 +710,7 @@ namespace SlidingBots
                     UnityEngine.Debug.Log(bots.ToString("X"));
                     UnityEngine.Debug.Log("search: " + count);
                     UnityEngine.Debug.Log("Depth: " + depth);
+                    UnityEngine.Debug.Log("Cache: " + cache.Count);
                     return (uint)found;
                 }
             }
@@ -697,6 +718,15 @@ namespace SlidingBots
 
         uint? dls(uint bots, int depth, uint prev)
         {
+            if (cache.ContainsKey(bots) && cache[bots] >= depth)
+            {
+                return null;
+            }
+            if (cache.Count < MaxCacheSize)
+            {
+                cache[bots] = depth;
+            }
+
             ++count;
             if (isGoal(bots))
             {
@@ -762,8 +792,10 @@ namespace SlidingBots
         uint GoalMaskX;
         uint goalMaskY;
         int count;
+        Dictionary<uint, int> cache;
         uint[][] verticalWall = new uint[MapSize][];
         uint[][] horizontalWall = new uint[MapSize][];
         const uint MapSize = 16;
+        const int MaxCacheSize = 10000000;
     }
 }
